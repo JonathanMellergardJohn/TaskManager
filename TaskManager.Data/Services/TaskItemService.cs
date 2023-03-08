@@ -101,23 +101,20 @@ namespace TaskManager.Data.Services
 
             return tasks;
         }
-        public void UpdateTaskItemInDb(TaskItem taskItem)
+        public async Task UpdateTaskItemSupervisorAsync(TaskItem taskItem)
         {
             // Find the TaskItemEntity with the given id
-            var _taskItem = _context.TaskItems.
+            var _taskItem = await _context.TaskItems.
                 Include(ti => ti.Supervisor).
-                Include(ti => ti.Status).
-                Include(ti => ti.Comment).
-                FirstOrDefault(ti => ti.Id == taskItem.Id);
+                FirstOrDefaultAsync(ti => ti.Id == taskItem.Id);
 
             if (_taskItem == null)
             {
                 throw new Exception($"TaskItemEntity with id {taskItem.Id} not found.");
             }
-            // UPDATE SUPERVISOR
 
             // Check if the new supervisor already exists in the Staff table
-            var existingSupervisor = _context.Staff.FirstOrDefault(s => s.FirstName == taskItem.SupervisorFirstName);
+            var existingSupervisor = await _context.Staff.FirstOrDefaultAsync(s => s.FirstName == taskItem.SupervisorFirstName);
 
             if (existingSupervisor != null)
             {
@@ -131,8 +128,8 @@ namespace TaskManager.Data.Services
                 {
                     FirstName = taskItem.SupervisorFirstName,
                 };
-                _context.Staff.Add(newSupervisor);
-                _context.SaveChanges();
+                await _context.Staff.AddAsync(newSupervisor);
+                await _context.SaveChangesAsync();
 
                 // Update the SupervisorId to the new supervisor's Id
                 _taskItem.SupervisorId = newSupervisor.Id;
@@ -142,7 +139,74 @@ namespace TaskManager.Data.Services
             _context.TaskItems.Update(_taskItem);
 
             // Save changes to the database
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
+        }
+        public async Task UpdateTaskItemStatusAsync(TaskItem taskItem)
+        {
+            // Find the TaskItemEntity with the given id
+            var _taskItem = await _context.TaskItems.
+                Include(ti => ti.Status).
+                FirstOrDefaultAsync(ti => ti.Id == taskItem.Id);
+
+            if (_taskItem == null)
+            {
+                
+                throw new Exception($"TaskItemEntity with id {taskItem.Id} not found.");
+            }
+
+            // Check if the new status is available as an option in Db
+            var existingStatus = await _context.TaskItemsStatus.FirstOrDefaultAsync(s => s.Message == taskItem.Status);
+
+            if (existingStatus == null)
+            {
+                Console.WriteLine($"{taskItem.Status} is not a valid status option!");
+                throw new Exception($"{taskItem.Status} is not a valid status option!");
+            }
+            else
+            {               
+                // Update the Status
+                _taskItem.StatusId = existingStatus.Id;
+            }
+
+            // Update the existing TaskItemEntity with the new Status
+            _context.TaskItems.Update(_taskItem);
+
+            // Save changes to the database
+            await _context.SaveChangesAsync();
+        }
+        public async Task UpdateTaskItemCommentAsync(TaskItem taskItem)
+        {
+            // This is a little dangerous. It assumes a tasks Id and its comment is identical.
+            // This is indeed the case now, but will change later on probably
+            var _comment = await _context.Comments.
+                FirstOrDefaultAsync(c => c.Id == taskItem.Id);
+
+            if (_comment == null)
+            {
+                throw new Exception($"TaskItemEntity with id {taskItem.Id} not found.");
+            }
+            else
+            {
+                _comment.Text = taskItem.Comment;
+            }
+            _context.Comments.Update(_comment);
+            await _context.SaveChangesAsync();
+        }
+        public async Task DeleteTaskItemByIdAsync(int id)
+        {
+            var taskItem = _context.TaskItems.Find(id);
+            if (taskItem != null)
+            {
+                _context.TaskItems.Remove(taskItem);                   
+            }
+
+            var comment = _context.Comments.Find(id);
+            if (comment != null)
+            {
+                _context.Comments.Remove(comment);
+            }
+
+            await _context.SaveChangesAsync();
         }
     }
 }
