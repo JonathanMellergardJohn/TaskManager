@@ -11,35 +11,39 @@ namespace TaskManager.Data.Services
         private readonly DataContext _context = new DataContext();
         public async Task SaveTaskItemToDbAsync(TaskItem taskItem)
         {
-            var taskItemEntity = new TaskItemEntity
+            var _taskItem = new TaskItemEntity
             {
                 Description = taskItem.Description,
                 Comment = new CommentEntity { Text = taskItem.Comment }
             };
 
-            // Check if Supervisor already exists in the database
-            var supervisorEntity = await _context.Staff.FirstOrDefaultAsync(s => s.FirstName == taskItem.SupervisorFirstName);
-            if (supervisorEntity != null)
+            if (taskItem.SupervisorFirstName != "")
             {
-                taskItemEntity.Supervisor = supervisorEntity;
+                // Check if Supervisor already exists in the database
+                var _supervisor = await _context.Staff.FirstOrDefaultAsync(s => s.FirstName == taskItem.SupervisorFirstName);
+                if (_supervisor != null)
+                {
+                    _taskItem.Supervisor = _supervisor;
+                }
+                else
+                {
+                    _taskItem.Supervisor = new StaffEntity { FirstName = taskItem.SupervisorFirstName };
+                }
             }
-            else
-            {
-                taskItemEntity.Supervisor = new StaffEntity { FirstName = taskItem.SupervisorFirstName };
-            }
+            
 
             // Check if TaskItemStatus already exists in the database
-            var statusEntity = await _context.TaskItemsStatus.FirstOrDefaultAsync(s => s.Message == taskItem.Status);
-            if (statusEntity != null)
+            var _status = await _context.TaskItemsStatus.FirstOrDefaultAsync(s => s.Message == taskItem.Status);
+            if (_status != null)
             {
-                taskItemEntity.Status = statusEntity;
+                _taskItem.Status = _status;
             }
             else
             {
-                taskItemEntity.Status = new TaskItemStatusEntity { Message = taskItem.Status };
+                _taskItem.Status = new TaskItemStatusEntity { Message = taskItem.Status };
             }
 
-            _context.Add(taskItemEntity);
+            _context.Add(_taskItem);
             await _context.SaveChangesAsync();
         }
         public async Task<TaskItem> GetTaskItemByIdAsync(int id)
@@ -194,7 +198,7 @@ namespace TaskManager.Data.Services
         }
         public async Task DeleteTaskItemByIdAsync(int id)
         {
-            var taskItem = _context.TaskItems.Find(id);
+            var taskItem = await _context.TaskItems.FindAsync(id);
             if (taskItem != null)
             {
                 _context.TaskItems.Remove(taskItem);                   
@@ -208,5 +212,6 @@ namespace TaskManager.Data.Services
 
             await _context.SaveChangesAsync();
         }
+
     }
 }

@@ -7,7 +7,7 @@ namespace TaskManager.Core.Models
         public int Id { get; set; }
         public string Description { get; set; } = "";
         // SupervisorId is in reference to table/entity Staff
-        public int SupervisorId { get; set; }
+        public int? SupervisorId { get; set; }
         public string SupervisorFirstName { get; set; } = "";
         // StatusId is in reference to table/entity TaskItemStatus
         public int StatusId { get; set; }

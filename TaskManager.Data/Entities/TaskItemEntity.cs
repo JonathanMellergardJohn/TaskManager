@@ -8,7 +8,7 @@ namespace TaskManager.Data.Entities
         public string Description { get; set; } = "";
 
         [ForeignKey("Supervisor")] // FK to Staff table; one to many
-        public int SupervisorId { get; set; }
+        public int? SupervisorId { get; set; }
         public StaffEntity? Supervisor { get; set; }
 
         [ForeignKey("Status")] // FK to TaskItemStatus table; one to many

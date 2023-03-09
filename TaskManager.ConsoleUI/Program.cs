@@ -2,9 +2,18 @@
 using TaskManager.Core.Models;
 using TaskManager.Data.Services;
 
+// DELETE STAFF
+
+StaffService service = new StaffService();
+await service.DeleteStaffByIdAsync(4);
+
+
+// DELETE TASKITEM
+/*
 TaskItemService taskService = new TaskItemService();
 
 await taskService.DeleteTaskItemByIdAsync(4);
+*/
 
 // UPDATE COMMENT
 /*
@@ -82,18 +91,17 @@ display.DisplaySingleTaskItem(taskItem);
 /*
 TaskItem newTask = new TaskItem
 {
-    Description = "I'm really in love with Jose, he's so hot!",
+    Description = "I can't deal with this heat no more",
     // SupervisorId // not set!
-    SupervisorFirstName = "Jose",
 
     //StatusId // not set!
-    Status = "NotOpened",
+    Status = "NotOpened"
     //CommentId // not set!
-    Comment = "I don't really know what to do about this task, to be honest."
 };
 
 TaskItemService taskService = new TaskItemService();
 await taskService.SaveTaskItemToDbAsync(newTask);
 */
+
 
 
