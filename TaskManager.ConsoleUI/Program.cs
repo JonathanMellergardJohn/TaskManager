@@ -1,12 +1,61 @@
 ﻿using TaskManager.ConsoleUI.Service;
-using TaskManager.Core.Models;
+using TaskManager.Data.Models;
 using TaskManager.Data.Services;
+using TaskManager.Data.Entities;
 
-// DELETE STAFF
+// GET TASK
+DisplayService display = new DisplayService();
+TaskItemService taskService = new TaskItemService();
+Mapper mapper = new Mapper();
+
+TaskItemEntity entity = await taskService.GetTaskReturnEntity(2);
+TaskItem model = mapper.TaskItemToModel(entity);
+display.DisplaySingleTaskItem(model);
+
+
+// DISPLAY STAFF WITH ASSIGNED TASKS
+/*
+DisplayService display = new DisplayService();
+StaffService service = new StaffService();
+
+List<Staff> staffList = await service.GetAllStaff();
+display.DisplayListOfStaff(staffList);
+*/
+
+// SAVE STAFF TO DB
+/*
+Staff staff = new Staff
+{
+    FirstName = "Johnny"
+};
 
 StaffService service = new StaffService();
-await service.DeleteStaffByIdAsync(4);
+await service.SaveStaffAsync(staff);
+*/
 
+// GET ALL STAFF
+/*
+StaffService service = new StaffService();
+DisplayService display = new DisplayService();
+
+List<Staff> list = await service.GetAllStaff();
+display.DisplayListOfStaff(list);
+*/
+
+// GET STAFF BY ID
+/*
+StaffService service = new StaffService();
+DisplayService display = new DisplayService();
+
+Staff staff = await service.GetStaffById(1);
+display.DisplaySingleStaff(staff);
+*/
+
+// DELETE STAFF
+/*
+StaffService service = new StaffService();
+await service.DeleteStaffByIdAsync(4);
+*/
 
 // DELETE TASKITEM
 /*

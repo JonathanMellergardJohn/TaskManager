@@ -1,4 +1,4 @@
-﻿using TaskManager.Core.Models;
+﻿using TaskManager.Data.Models;
 
 namespace TaskManager.ConsoleUI.Service
 {
@@ -21,6 +21,27 @@ namespace TaskManager.ConsoleUI.Service
             foreach(var taskItem in list) 
             { 
                 DisplaySingleTaskItem(taskItem);
+            }
+        }
+        public void DisplaySingleStaff(Staff staff)
+        {
+            Console.WriteLine("----------------------------------");
+            Console.WriteLine($"STAFF ID: {staff.Id}");
+            Console.WriteLine($"FirstName: {staff.FirstName}");
+            Console.WriteLine("\n~~~~~~~ Assigned Tasks ~~~~~~~");
+            foreach (var task in staff.TasksForSupervision)
+            {
+                Console.WriteLine($"TASK ID: {task.Id}");
+                Console.WriteLine($"Description: {task.Description}");
+                Console.WriteLine("\n");
+            }
+            Console.WriteLine("----------------------------------");
+        }
+        public void DisplayListOfStaff(List<Staff> list)
+        {
+            foreach (var staff in list)
+            {
+                DisplaySingleStaff(staff);
             }
         }
     }

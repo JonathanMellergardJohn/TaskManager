@@ -1,6 +1,6 @@
 ﻿
 
-namespace TaskManager.Core.Models
+namespace TaskManager.Data.Models
 {
     public class TaskItem
     {

@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TaskManager.Data.Entities;
 
-namespace TaskManagement.Data
+namespace TaskManager.Data
 {
     public class DataContext : DbContext
     {
@@ -27,6 +27,7 @@ namespace TaskManagement.Data
                 optionsBuilder.UseSqlServer(_connString);
             }
         }
+        
         
     }
 }

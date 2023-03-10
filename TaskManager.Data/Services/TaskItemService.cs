@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TaskManagement.Data;
-using TaskManager.Core.Models;
+using TaskManager.Data;
+using TaskManager.Data.Models;
 using TaskManager.Data.Entities;
 
 namespace TaskManager.Data.Services
@@ -31,7 +31,6 @@ namespace TaskManager.Data.Services
                 }
             }
             
-
             // Check if TaskItemStatus already exists in the database
             var _status = await _context.TaskItemsStatus.FirstOrDefaultAsync(s => s.Message == taskItem.Status);
             if (_status != null)
@@ -211,6 +210,21 @@ namespace TaskManager.Data.Services
             }
 
             await _context.SaveChangesAsync();
+        }
+        public async Task<TaskItemEntity> GetTaskReturnEntity(int id) 
+        {
+            var taskItemEntity = await _context.TaskItems
+                .Include(ti => ti.Supervisor)
+                .Include(ti => ti.Status)
+                .Include(ti => ti.Comment)
+                .FirstOrDefaultAsync(ti => ti.Id == id);
+
+            if (taskItemEntity == null)
+            {
+                throw new Exception($"Task item with id {id} not found");
+            }
+
+            return taskItemEntity;
         }
 
     }
