@@ -74,6 +74,7 @@ namespace TaskManager.Data.Services
 
             return taskItem;
         }
+        /*
         public async Task<List<TaskItem>> GetAllTaskItemsAsync()
         {
             // list of TaskItems to populate and return
@@ -103,6 +104,18 @@ namespace TaskManager.Data.Services
             }
 
             return tasks;
+        }
+        */
+        public async Task<ICollection<TaskItemEntity>> GetAllTaskItemsAsync()
+        {
+            // list of TaskItems to populate and return
+            ICollection<TaskItemEntity> collection = await _context.TaskItems
+                .Include(ti => ti.Supervisor)
+                .Include(ti => ti.Status)
+                .Include(ti => ti.Comment)
+                .ToListAsync();
+
+            return collection;
         }
         public async Task UpdateTaskItemSupervisorAsync(TaskItem taskItem)
         {

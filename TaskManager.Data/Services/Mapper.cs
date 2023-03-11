@@ -23,5 +23,16 @@ namespace TaskManager.Data.Services
 
             return taskItem;
         } 
+        public List<TaskItem> ICollectionTaskToList(ICollection<TaskItemEntity> collection)
+        {
+            List<TaskItem> list = new List<TaskItem>();
+
+            foreach (var taskItemEntity in collection)
+            {
+                var taskItem = TaskItemToModel(taskItemEntity);
+                list.Add(taskItem);
+            }
+            return list;
+        }
     }
 }

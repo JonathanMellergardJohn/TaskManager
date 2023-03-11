@@ -13,7 +13,8 @@ namespace TaskManager.ConsoleUI.Service
             Console.WriteLine($"Supervisor First Name: {taskItem.SupervisorFirstName}");
             Console.WriteLine($"Status Id: {taskItem.StatusId}");
             Console.WriteLine($"Status: {taskItem.Status}");
-            Console.WriteLine($"Comment Id: {taskItem.Comment}");
+            Console.WriteLine($"Comment Id: {taskItem.CommentId}");
+            Console.WriteLine($"Comment: {taskItem.Comment}");
             Console.WriteLine("----------------------------------");
         }
         public void DisplayListOfTaskItems(List<TaskItem> list) 

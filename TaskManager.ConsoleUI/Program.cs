@@ -3,7 +3,17 @@ using TaskManager.Data.Models;
 using TaskManager.Data.Services;
 using TaskManager.Data.Entities;
 
+// GET ALL TASKS
+DisplayService display = new DisplayService();
+TaskItemService taskService = new TaskItemService();
+Mapper mapper = new Mapper();
+
+ICollection<TaskItemEntity> collection = await taskService.GetAllTaskItemsAsync();
+List<TaskItem> list = mapper.ICollectionTaskToList(collection);
+display.DisplayListOfTaskItems(list);
+
 // GET TASK
+/*
 DisplayService display = new DisplayService();
 TaskItemService taskService = new TaskItemService();
 Mapper mapper = new Mapper();
@@ -11,7 +21,7 @@ Mapper mapper = new Mapper();
 TaskItemEntity entity = await taskService.GetTaskReturnEntity(2);
 TaskItem model = mapper.TaskItemToModel(entity);
 display.DisplaySingleTaskItem(model);
-
+*/
 
 // DISPLAY STAFF WITH ASSIGNED TASKS
 /*
