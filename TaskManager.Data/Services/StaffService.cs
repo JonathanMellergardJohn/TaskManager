@@ -9,63 +9,30 @@ namespace TaskManager.Data.Services
     public class StaffService
     {
         private readonly DataContext _context = new DataContext();
-        public async Task<Staff> GetStaffById(int id)
+        public async Task<StaffEntity> GetStaffById(int id)
         {
-            var _staff = await _context.Staff
+            var staffEntity = await _context.Staff
                 .Include(s => s.TaskItems)
                 .FirstOrDefaultAsync(s => s.Id == id);
 
-            if (_staff == null)
+            if (staffEntity == null)
             {
-                throw new Exception($"Task item with id {id} not found");
-            }
-            Staff staff = new Staff
-            {
-                Id = _staff.Id,
-                FirstName = _staff.FirstName,
-            };
-            foreach (var taskItemEntity in _staff.TaskItems)
-            {
-                staff.TasksForSupervision.Add(new TaskItem
-                {
-                    Id = taskItemEntity.Id,
-                    Description = taskItemEntity.Description
-                    // Add other properties as needed
-                });
-            }
+                throw new Exception($"Staff with id {id} not found");
+            }                     
 
-            return staff;
+            return staffEntity;
         }
-        public async Task<List<Staff>> GetAllStaff()
+        public async Task<ICollection<StaffEntity>> GetAllStaff()
         {
             // list of Staff to populate and return
-            var staffList = new List<Staff>();
-
-            var _staffList = await _context.Staff
+            ICollection<StaffEntity> collection = await _context.Staff
                 .Include(s => s.TaskItems)
+                    .ThenInclude(ti => ti.Comment)
+                .Include(s => s.TaskItems)
+                    .ThenInclude(ti => ti.Status)
                 .ToListAsync();
 
-            foreach(var _staff in _staffList)
-            {
-                Staff newStaff = new Staff
-                { 
-                    Id = _staff.Id, 
-                    FirstName = _staff.FirstName,
-                };
-                foreach (var taskItemEntity in _staff.TaskItems)
-                {
-                    newStaff.TasksForSupervision.Add(new TaskItem
-                    {
-                        Id = taskItemEntity.Id,
-                        Description = taskItemEntity.Description
-                        // Add other properties as needed
-                    });
-                }
-                staffList.Add(newStaff);
-
-            }
-
-            return staffList;
+            return collection;
         }
         public async Task DeleteStaffByIdAsync(int id)
         {

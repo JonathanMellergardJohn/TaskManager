@@ -3,7 +3,50 @@ using TaskManager.Data.Models;
 using TaskManager.Data.Services;
 using TaskManager.Data.Entities;
 
+StaffService staffService = new StaffService();
+Mapper mapper = new Mapper();
+MenuService menuService = new MenuService();
+
+menuService.LogInView();
+
+
+
+// UPDATE ENTITY SUPERVISOR
+/*
+TaskItemService taskService = new TaskItemService();
+Mapper mapper = new Mapper();
+
+// get taskEntity and mapp to model
+var entity = await taskService.GetTaskItemByIdAsync(3);
+var model = mapper.TaskEntityToModel(entity);
+
+// reasign model supervisor
+model.SupervisorFirstName = "Johnny";
+
+var newEntity = mapper.TaskModelToEntity(model);
+await taskService.UpdateTaskItemSupervisorAsync(newEntity);
+*/
+
+// ADD TASK WITH MAPPING
+/*
+TaskItemService taskService = new TaskItemService();
+Mapper mapper = new Mapper();
+
+TaskItem model = new TaskItem
+{
+
+    Description = "Test",
+    SupervisorFirstName = "Andrew",
+    Status = "NotOpened",
+    Comment = "Nothing to add here."
+};
+
+var entity = mapper.TaskModelToEntity(model);
+await taskService.SaveTaskItemToDbAsync(entity);
+*/
+
 // GET ALL TASKS
+/*
 DisplayService display = new DisplayService();
 TaskItemService taskService = new TaskItemService();
 Mapper mapper = new Mapper();
@@ -11,6 +54,7 @@ Mapper mapper = new Mapper();
 ICollection<TaskItemEntity> collection = await taskService.GetAllTaskItemsAsync();
 List<TaskItem> list = mapper.ICollectionTaskToList(collection);
 display.DisplayListOfTaskItems(list);
+*/
 
 // GET TASK
 /*

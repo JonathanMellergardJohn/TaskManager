@@ -9,103 +9,36 @@ namespace TaskManager.Data.Services
     {
         // instantiation do database context
         private readonly DataContext _context = new DataContext();
-        public async Task SaveTaskItemToDbAsync(TaskItem taskItem)
-        {
-            var _taskItem = new TaskItemEntity
+        public async Task SaveTaskItemToDbAsync(TaskItemEntity taskItemEntity)
+        {           
+            if (taskItemEntity.Supervisor.FirstName != "")
             {
-                Description = taskItem.Description,
-                Comment = new CommentEntity { Text = taskItem.Comment }
-            };
-
-            if (taskItem.SupervisorFirstName != "")
-            {
-                // Check if Supervisor already exists in the database
-                var _supervisor = await _context.Staff.FirstOrDefaultAsync(s => s.FirstName == taskItem.SupervisorFirstName);
-                if (_supervisor != null)
+                // Check if Supervisor exists in the database
+                var supervisorExists = await _context.Staff.FirstOrDefaultAsync(s => s.FirstName == taskItemEntity.Supervisor.FirstName);
+                if (supervisorExists != null)
                 {
-                    _taskItem.Supervisor = _supervisor;
+                    taskItemEntity.Supervisor = supervisorExists;
                 }
                 else
                 {
-                    _taskItem.Supervisor = new StaffEntity { FirstName = taskItem.SupervisorFirstName };
+                    throw new Exception($"Passed Staff {taskItemEntity.Supervisor.FirstName} does not exist in the database!");
                 }
             }
             
             // Check if TaskItemStatus already exists in the database
-            var _status = await _context.TaskItemsStatus.FirstOrDefaultAsync(s => s.Message == taskItem.Status);
-            if (_status != null)
+            var statusExists = await _context.TaskItemsStatus.FirstOrDefaultAsync(s => s.Message == taskItemEntity.Status.Message);
+            if (statusExists != null)
             {
-                _taskItem.Status = _status;
+                taskItemEntity.Status = statusExists;
             }
             else
             {
-                _taskItem.Status = new TaskItemStatusEntity { Message = taskItem.Status };
+                throw new Exception($"Passed Status {taskItemEntity.Status.Message} does not exist in the database!");
             }
 
-            _context.Add(_taskItem);
+            _context.Add(taskItemEntity);
             await _context.SaveChangesAsync();
         }
-        public async Task<TaskItem> GetTaskItemByIdAsync(int id)
-        {
-            var taskItemEntity = await _context.TaskItems
-                .Include(ti => ti.Supervisor)
-                .Include(ti => ti.Status)
-                .Include(ti => ti.Comment)
-                .FirstOrDefaultAsync(ti => ti.Id == id);
-
-            if (taskItemEntity == null)
-            {
-                throw new Exception($"Task item with id {id} not found");
-            }
-
-            TaskItem taskItem = new TaskItem
-            {
-                // this mapping is reused and should be refactored to a function 
-                // to be called, so the mapping only has to be changed once!
-                Id = taskItemEntity.Id,
-                Description = taskItemEntity.Description,
-                SupervisorId = taskItemEntity.SupervisorId,
-                SupervisorFirstName = taskItemEntity.Supervisor?.FirstName ?? "",
-                StatusId = taskItemEntity.StatusId,
-                Status = taskItemEntity.Status?.Message ?? "",
-                CommentId = taskItemEntity.CommentId,
-                Comment = taskItemEntity.Comment?.Text ?? ""
-            };
-
-            return taskItem;
-        }
-        /*
-        public async Task<List<TaskItem>> GetAllTaskItemsAsync()
-        {
-            // list of TaskItems to populate and return
-            var tasks = new List<TaskItem>();
-            // fetch list of TaskItemEntity instances from Db
-            var taskEntitites = await _context.TaskItems
-                .Include(ti => ti.Supervisor)
-                .Include(ti => ti.Status)
-                .Include(ti => ti.Comment)
-                .ToListAsync();
-            // Iterate fetched TaskItemEntity and add each to return List of TaskItems 
-            foreach(var taskItemEntity in taskEntitites) 
-            {
-                tasks.Add(new TaskItem 
-                {
-                    // this mapping is reused and should be refactored to a function 
-                    // to be called, so the mapping only has to be changed once!
-                    Id = taskItemEntity.Id,
-                    Description = taskItemEntity.Description,
-                    SupervisorId = taskItemEntity.SupervisorId,
-                    SupervisorFirstName = taskItemEntity.Supervisor?.FirstName ?? "",
-                    StatusId = taskItemEntity.StatusId,
-                    Status = taskItemEntity.Status?.Message ?? "",
-                    CommentId = taskItemEntity.CommentId,
-                    Comment = taskItemEntity.Comment?.Text ?? ""
-                });
-            }
-
-            return tasks;
-        }
-        */
         public async Task<ICollection<TaskItemEntity>> GetAllTaskItemsAsync()
         {
             // list of TaskItems to populate and return
@@ -117,66 +50,55 @@ namespace TaskManager.Data.Services
 
             return collection;
         }
-        public async Task UpdateTaskItemSupervisorAsync(TaskItem taskItem)
+        public async Task UpdateTaskItemSupervisorAsync(TaskItemEntity entity)
         {
             // Find the TaskItemEntity with the given id
             var _taskItem = await _context.TaskItems.
                 Include(ti => ti.Supervisor).
-                FirstOrDefaultAsync(ti => ti.Id == taskItem.Id);
+                FirstOrDefaultAsync(ti => ti.Id == entity.Id);
 
             if (_taskItem == null)
             {
-                throw new Exception($"TaskItemEntity with id {taskItem.Id} not found.");
+                throw new Exception($"TaskItemEntity with id {entity.Id} not found.");
             }
 
-            // Check if the new supervisor already exists in the Staff table
-            var existingSupervisor = await _context.Staff.FirstOrDefaultAsync(s => s.FirstName == taskItem.SupervisorFirstName);
+            // Check if a new supervisor is attached to the passed entity 
+            if (entity.Supervisor != null && !string.IsNullOrEmpty(entity.Supervisor.FirstName))
+            {
+                // check if passed supervisor exists in the Staff table
+                var existingSupervisor = await _context.Staff.FirstOrDefaultAsync(s => s.FirstName == entity.Supervisor.FirstName);
 
-            if (existingSupervisor != null)
-            {
-                // Update the SupervisorId to the existing supervisor's Id
-                _taskItem.SupervisorId = existingSupervisor.Id;
-            }
-            else
-            {
-                // Add the new supervisor to the Staff table
-                var newSupervisor = new StaffEntity
+                if (existingSupervisor != null)
                 {
-                    FirstName = taskItem.SupervisorFirstName,
-                };
-                await _context.Staff.AddAsync(newSupervisor);
-                await _context.SaveChangesAsync();
-
-                // Update the SupervisorId to the new supervisor's Id
-                _taskItem.SupervisorId = newSupervisor.Id;
+                    // Update the SupervisorId to the existing supervisor's Id
+                    _taskItem.SupervisorId = existingSupervisor.Id;
+                    _context.SaveChanges();
+                }
+                else
+                {
+                    throw new Exception($"Passed Staff {entity.Supervisor.FirstName} does not exist in the database!");
+                }
             }
-
-            // Update the existing TaskItemEntity with the new SupervisorId
-            _context.TaskItems.Update(_taskItem);
-
-            // Save changes to the database
-            await _context.SaveChangesAsync();
         }
-        public async Task UpdateTaskItemStatusAsync(TaskItem taskItem)
+        public async Task UpdateTaskItemStatusAsync(TaskItemEntity taskItemEntity)
         {
             // Find the TaskItemEntity with the given id
             var _taskItem = await _context.TaskItems.
                 Include(ti => ti.Status).
-                FirstOrDefaultAsync(ti => ti.Id == taskItem.Id);
+                FirstOrDefaultAsync(ti => ti.Id == taskItemEntity.Id);
 
             if (_taskItem == null)
-            {
-                
-                throw new Exception($"TaskItemEntity with id {taskItem.Id} not found.");
+            {                
+                throw new Exception($"TaskItemEntity with id {taskItemEntity.Id} not found.");
             }
 
             // Check if the new status is available as an option in Db
-            var existingStatus = await _context.TaskItemsStatus.FirstOrDefaultAsync(s => s.Message == taskItem.Status);
+            var existingStatus = await _context.TaskItemsStatus.FirstOrDefaultAsync(s => s.Message == taskItemEntity.Status.Message);
 
             if (existingStatus == null)
             {
-                Console.WriteLine($"{taskItem.Status} is not a valid status option!");
-                throw new Exception($"{taskItem.Status} is not a valid status option!");
+                Console.WriteLine($"{taskItemEntity.Status} is not a valid status option!");
+                throw new Exception($"{taskItemEntity.Status} is not a valid status option!");
             }
             else
             {               
@@ -190,20 +112,20 @@ namespace TaskManager.Data.Services
             // Save changes to the database
             await _context.SaveChangesAsync();
         }
-        public async Task UpdateTaskItemCommentAsync(TaskItem taskItem)
+        public async Task UpdateTaskItemCommentAsync(TaskItemEntity taskItemEntity)
         {
             // This is a little dangerous. It assumes a tasks Id and its comment is identical.
             // This is indeed the case now, but will change later on probably
             var _comment = await _context.Comments.
-                FirstOrDefaultAsync(c => c.Id == taskItem.Id);
+                FirstOrDefaultAsync(c => c.Id == taskItemEntity.Id);
 
             if (_comment == null)
             {
-                throw new Exception($"TaskItemEntity with id {taskItem.Id} not found.");
+                throw new Exception($"TaskItemEntity with id {taskItemEntity.Id} not found.");
             }
             else
             {
-                _comment.Text = taskItem.Comment;
+                _comment.Text = taskItemEntity.Comment.Text;
             }
             _context.Comments.Update(_comment);
             await _context.SaveChangesAsync();
@@ -224,7 +146,7 @@ namespace TaskManager.Data.Services
 
             await _context.SaveChangesAsync();
         }
-        public async Task<TaskItemEntity> GetTaskReturnEntity(int id) 
+        public async Task<TaskItemEntity> GetTaskItemByIdAsync(int id) 
         {
             var taskItemEntity = await _context.TaskItems
                 .Include(ti => ti.Supervisor)
@@ -239,6 +161,5 @@ namespace TaskManager.Data.Services
 
             return taskItemEntity;
         }
-
     }
 }

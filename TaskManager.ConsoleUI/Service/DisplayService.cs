@@ -29,6 +29,13 @@ namespace TaskManager.ConsoleUI.Service
             Console.WriteLine("----------------------------------");
             Console.WriteLine($"STAFF ID: {staff.Id}");
             Console.WriteLine($"FirstName: {staff.FirstName}");
+            Console.WriteLine("----------------------------------");
+        }
+        public void DisplaySingleStaffWithTasks(Staff staff)
+        {
+            Console.WriteLine("----------------------------------");
+            Console.WriteLine($"STAFF ID: {staff.Id}");
+            Console.WriteLine($"FirstName: {staff.FirstName}");
             Console.WriteLine("\n~~~~~~~ Assigned Tasks ~~~~~~~");
             foreach (var task in staff.TasksForSupervision)
             {
@@ -43,6 +50,13 @@ namespace TaskManager.ConsoleUI.Service
             foreach (var staff in list)
             {
                 DisplaySingleStaff(staff);
+            }
+        }
+        public void DisplayListOfStaffWithTasks(List<Staff> list)
+        {
+            foreach (var staff in list)
+            {
+                DisplaySingleStaffWithTasks(staff);
             }
         }
     }
